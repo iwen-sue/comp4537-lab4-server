@@ -4,7 +4,6 @@ const dictAPIRoot = "https://api.dictionaryapi.dev/api/v2/entries/en/";
 const GET = "GET";
 const POST = "POST";
 const endPointRoot = "/api/definitions";
-const reqSet = new Set();
 const dictionary = [];
 let reqCount = 0;
 
@@ -48,16 +47,52 @@ http
           res.write(JSON.stringify({ word, warning: "Word Not Found" }));
           res.end();
         });
+        // .../api/definitions/add to add word: definition to dictionary
+    } else if (method === POST && pathname === endPointRoot + "/add") {
+      let body = "";
+      req.on("data", (chunk) => {
+        if (chunk) {
+          body += chunk.toString();
+        }
+      });
+      req.on("end", () => {
+        let { word, definition } = JSON.parse(body);
+        word = word.toLowerCase();
+        if (dictionary.some((obj) => obj.word === word)) {
+          res.writeHead(
+            500,
+            { "Content-Type": "text/html" },
+            { "Access-Control-Allow-Origin": "*" }
+          );
+          res.write(
+            JSON.stringify({
+              word,
+              warning: `Warning! ${word} already exists in record.`,
+            })
+          );
+          res.end();
+          return;
+        }
+        const storedObj = { reqCount, word, definition };
+        dictionary.push(storedObj);
+        res.writeHead(
+          200,
+          { "Content-Type": "text/html" },
+          { "Access-Control-Allow-Origin": "*" }
+        );
+        res.write(JSON.stringify({storedObj, message: `${word} successfully added to dictionary`}));
+        res.end();
+      });
 
       // .../api/definitions for display all words
     } else if (method === GET && pathname === endPointRoot) {
-        res.writeHead(
-            200,
-            { "Content-Type": "text/html" },
-            { "Access-Control-Allow-Origin": "*" }
-        );
-        res.write(JSON.stringify(dictionary));
-        res.end();
+      res.writeHead(
+        200,
+        { "Content-Type": "text/html" },
+        { "Access-Control-Allow-Origin": "*" }
+      );
+      res.write(JSON.stringify(dictionary));
+      res.end();
 
       // Search Word
     } else if (method === POST && pathname === endPointRoot) {
@@ -70,29 +105,12 @@ http
       req.on("end", () => {
         let { word } = JSON.parse(body);
         word = word.toLowerCase();
-        if (reqSet.has(word)) {
-          res.writeHead(
-            500,
-            { "Content-Type": "text/html" },
-            { "Access-Control-Allow-Origin": "*" }
-          );
-          res.write(
-            JSON.stringify({
-              word,
-              warning: `Warning! ${word} already exists in record or was searched.`,
-            })
-          );
-          res.end();
-          return;
-        }
-        reqSet.add(word);
         reqCount++;
         fetch(`${dictAPIRoot}${word}`)
           .then((response) => response.json())
           .then((data) => {
             const definition = data[0].meanings[0].definitions[0].definition;
-            const searchObj = { reqCount, word, definition };
-            dictionary.push(searchObj);
+            const searchObj = { word, definition };
             res.writeHead(
               200,
               { "Content-Type": "text/html" },
@@ -103,7 +121,9 @@ http
           })
           .catch((err) => {
             res.writeHead(404, { "Content-Type": "text/html" });
-            res.write(JSON.stringify({ reqCount, word, warning: "Word Not Found" }));
+            res.write(
+              JSON.stringify({ word, warning: "Word Not Found" })
+            );
             res.end();
           });
       });
@@ -115,6 +135,6 @@ http
       res.end();
     }
   })
-  .listen( process.env.PORT || 3000, () => {
+  .listen(process.env.PORT || 3000, () => {
     console.log("Server is running on port 3000");
   });
