@@ -5,7 +5,7 @@ const GET = "GET";
 const POST = "POST";
 const endPointRoot = "/api/definitions";
 const dictionary = [];
-let reqCount = 0;
+let recCount = 0;
 
 http
   .createServer((req, res) => {
@@ -44,11 +44,12 @@ http
         })
         .catch((err) => {
           res.writeHead(400, { "Content-Type": "text/html" });
-          res.write(JSON.stringify({ word, warning: "Word Not Found" }));
+          res.write(JSON.stringify({ word, warning: "Word Definition Not Found" }));
           res.end();
         });
         // .../api/definitions/add to add word: definition to dictionary
     } else if (method === POST && pathname === endPointRoot + "/add") {
+      recCount++;
       let body = "";
       req.on("data", (chunk) => {
         if (chunk) {
@@ -73,7 +74,7 @@ http
           res.end();
           return;
         }
-        const storedObj = { reqCount, word, definition };
+        const storedObj = { recCount, word, definition };
         dictionary.push(storedObj);
         res.writeHead(
           200,
@@ -105,7 +106,6 @@ http
       req.on("end", () => {
         let { word } = JSON.parse(body);
         word = word.toLowerCase();
-        reqCount++;
         fetch(`${dictAPIRoot}${word}`)
           .then((response) => response.json())
           .then((data) => {
@@ -122,7 +122,7 @@ http
           .catch((err) => {
             res.writeHead(404, { "Content-Type": "text/html" });
             res.write(
-              JSON.stringify({ word, warning: "Word Not Found" })
+              JSON.stringify({ word, warning: "Word Definition Not Found" })
             );
             res.end();
           });
