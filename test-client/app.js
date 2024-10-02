@@ -3,7 +3,7 @@ console.log('Test app!');
 function search() {
     const xhttp = new XMLHttpRequest();
     const str = document.getElementById('search').value;
-    xhttp.open('POST', "http://localhost:3000/api/definitions", true);
+    xhttp.open('POST', "https://api.grace-su.com/api/definitions", true);
     xhttp.setRequestHeader('Content-Type', 'application/json');
     xhttp.send(JSON.stringify({ word: str }));
     xhttp.onreadystatechange = function() {
