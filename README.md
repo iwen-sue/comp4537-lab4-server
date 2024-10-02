@@ -8,3 +8,6 @@ https://api.grace-su.com/api/definitions
 
 ### POST method
 https://api.grace-su.com/api/definitions
+
+### POST method to add to dictionary
+https://api.grace-su.com/api/definitions/add
