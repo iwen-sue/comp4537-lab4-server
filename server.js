@@ -5,6 +5,7 @@ const GET = "GET";
 const POST = "POST";
 const endPointRoot = "/api/definitions";
 const dictionary = [];
+let queryCount = 0;
 let recCount = 0;
 
 http
@@ -24,7 +25,7 @@ http
       return;
     }
 
-    // .../api/definitions?word=***
+    // .../api/definitions?word=*** => Get definition from free dictionary API
     if (method === GET && pathname === endPointRoot && query.word) {
       const word = query.word.toLowerCase();
 
@@ -47,7 +48,8 @@ http
           res.write(JSON.stringify({ word, warning: "Word Definition Not Found" }));
           res.end();
         });
-        // .../api/definitions/add to add word: definition to dictionary
+
+        // .../api/definitions/add => to add word: definition to dictionary record
     } else if (method === POST && pathname === endPointRoot + "/add") {
       recCount++;
       let body = "";
@@ -85,7 +87,7 @@ http
         res.end();
       });
 
-      // .../api/definitions for display all words
+      // .../api/definitions for display all words in record
     } else if (method === GET && pathname === endPointRoot) {
       res.writeHead(
         200,
@@ -95,7 +97,7 @@ http
       res.write(JSON.stringify(dictionary));
       res.end();
 
-      // Search Word
+      // Search Word from free dictionary API
     } else if (method === POST && pathname === endPointRoot) {
       let body = "";
       req.on("data", (chunk) => {
@@ -126,6 +128,34 @@ http
             );
             res.end();
           });
+      });
+      // Search word from records
+    } else if (method === POST && pathname === endPointRoot + "/search") {
+      let body = "";
+      req.on("data", (chunk) => {
+        if (chunk) {
+          body += chunk.toString();
+        }
+      });
+      req.on("end", () => {
+        let { word } = JSON.parse(body);
+        word = word.toLowerCase();
+        const searchObj = dictionary.find((obj) => obj.word === word);
+        if (searchObj) {
+          res.writeHead(
+            200,
+            { "Content-Type": "text/html" },
+            { "Access-Control-Allow-Origin": "*" }
+          );
+          res.write(JSON.stringify(searchObj));
+          res.end();
+        } else {
+          res.writeHead(404, { "Content-Type": "text/html" });
+          res.write(
+            JSON.stringify({ word, warning: "Word Not Found from Record" })
+          );
+          res.end();
+        }
       });
 
       // 404 Not Found

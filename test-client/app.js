@@ -1,6 +1,6 @@
 console.log('Test app!');
 
-function search() {
+function genDefinition() {
     document.getElementById('definition').value = '';
     const xhttp = new XMLHttpRequest();
     const str = document.getElementById('search').value;
@@ -20,6 +20,10 @@ function search() {
             document.getElementById('result').innerHTML = "Error!";
         }
     };
+}
+
+function search() {
+    
 }
 
 function store() {
