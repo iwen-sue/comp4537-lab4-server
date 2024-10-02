@@ -103,7 +103,7 @@ http
           })
           .catch((err) => {
             res.writeHead(404, { "Content-Type": "text/html" });
-            res.write(JSON.stringify({ reqCount, word, definition: "Not Found" }));
+            res.write(JSON.stringify({ reqCount, word, warning: "Word Not Found" }));
             res.end();
           });
       });
