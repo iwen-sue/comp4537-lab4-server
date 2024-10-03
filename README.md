@@ -11,6 +11,3 @@ https://api.grace-su.com/api/definitions
 
 ### POST method to add word : definition object to dictionary records
 https://api.grace-su.com/api/definitions/add
-
-### POST method to search word definition from records
-https://api.grace-su.com/api/definitions/search

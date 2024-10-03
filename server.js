@@ -25,8 +25,9 @@ http
       return;
     }
 
-    // .../api/definitions?word=*** => Get definition from free dictionary API
+    // .../api/definitions?word=*** => Get definition from dictionary record 
     if (method === GET && pathname === endPointRoot && query.word) {
+      queryCount++;
       const word = query.word.toLowerCase();
 
       const searchObj = dictionary.find((obj) => obj.word === word);
@@ -42,6 +43,7 @@ http
         res.writeHead(404, { "Content-Type": "text/html" });
         res.write(
           JSON.stringify({
+            queryCount,
             word,
             warning: `Word: ${word} Not Found from Record`,
           })
@@ -102,7 +104,7 @@ http
       res.write(JSON.stringify(dictionary));
       res.end();
 
-      // Search Word from free dictionary API
+      // Search Word from free dictionary API for dev testing purpose
     } else if (method === POST && pathname === endPointRoot) {
       let body = "";
       req.on("data", (chunk) => {
@@ -134,41 +136,7 @@ http
             res.end();
           });
       });
-      // Search word from records
-    } else if (method === POST && pathname === endPointRoot + "/search") {
-      queryCount++;
-      let body = "";
-      req.on("data", (chunk) => {
-        if (chunk) {
-          body += chunk.toString();
-        }
-      });
-      req.on("end", () => {
-        let { word } = JSON.parse(body);
-        word = word.toLowerCase();
-        const searchObj = dictionary.find((obj) => obj.word === word);
-        if (searchObj) {
-          res.writeHead(
-            200,
-            { "Content-Type": "text/html" },
-            { "Access-Control-Allow-Origin": "*" }
-          );
-          res.write(JSON.stringify({ queryCount, searchObj })); // not sure
-          res.end();
-        } else {
-          res.writeHead(404, { "Content-Type": "text/html" });
-          res.write(
-            JSON.stringify({
-              queryCount,
-              word,
-              warning: `Word: ${word} Not Found from Record`,
-            })
-          );
-          res.end();
-        }
-      });
-
-      // 404 Not Found
+      // Page not found
     } else {
       res.writeHead(404, { "Content-Type": "text/html" });
       res.write("404 Not Found");
