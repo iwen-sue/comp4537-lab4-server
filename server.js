@@ -29,27 +29,27 @@ http
     if (method === GET && pathname === endPointRoot && query.word) {
       const word = query.word.toLowerCase();
 
-      // API call to get definition
-      fetch(`${dictAPIRoot}${word}`)
-        .then((response) => response.json())
-        .then((data) => {
-          const definition = data[0].meanings[0].definitions[0].definition;
-          const searchObj = { word, definition };
-          res.writeHead(
-            200,
-            { "Content-Type": "text/html" },
-            { "Access-Control-Allow-Origin": "*" }
-          );
-          res.write(JSON.stringify(searchObj));
-          res.end();
-        })
-        .catch((err) => {
-          res.writeHead(400, { "Content-Type": "text/html" });
-          res.write(JSON.stringify({ word, warning: "Word Definition Not Found" }));
-          res.end();
-        });
+      const searchObj = dictionary.find((obj) => obj.word === word);
+      if (searchObj) {
+        res.writeHead(
+          200,
+          { "Content-Type": "text/html" },
+          { "Access-Control-Allow-Origin": "*" }
+        );
+        res.write(JSON.stringify(searchObj));
+        res.end();
+      } else {
+        res.writeHead(404, { "Content-Type": "text/html" });
+        res.write(
+          JSON.stringify({
+            word,
+            warning: "Word Not Found from Record",
+          })
+        );
+        res.end();
+      }
 
-        // .../api/definitions/add => to add word: definition to dictionary record
+      // .../api/definitions/add => to add word: definition to dictionary record
     } else if (method === POST && pathname === endPointRoot + "/add") {
       let body = "";
       req.on("data", (chunk) => {
@@ -83,7 +83,12 @@ http
           { "Content-Type": "text/html" },
           { "Access-Control-Allow-Origin": "*" }
         );
-        res.write(JSON.stringify({storedObj, message: `${word} successfully added to dictionary`}));
+        res.write(
+          JSON.stringify({
+            storedObj,
+            message: `${word} successfully added to dictionary`,
+          })
+        );
         res.end();
       });
 
@@ -148,12 +153,16 @@ http
             { "Content-Type": "text/html" },
             { "Access-Control-Allow-Origin": "*" }
           );
-          res.write(JSON.stringify({queryCount, searchObj})); // not sure
+          res.write(JSON.stringify({ queryCount, searchObj })); // not sure
           res.end();
         } else {
           res.writeHead(404, { "Content-Type": "text/html" });
           res.write(
-            JSON.stringify({ queryCount, word, warning: "Word Not Found from Record" })
+            JSON.stringify({
+              queryCount,
+              word,
+              warning: "Word Not Found from Record",
+            })
           );
           res.end();
         }
