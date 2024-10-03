@@ -23,6 +23,7 @@ function genDefinition() {
 }
 
 function search() {
+    document.getElementById('definition').value = '';
     const xhttp = new XMLHttpRequest();
     const word = document.getElementById('search').value;
     xhttp.open('POST', "https://api.grace-su.com/api/definitions/search", true);
