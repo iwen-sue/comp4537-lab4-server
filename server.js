@@ -148,7 +148,7 @@ http
             { "Content-Type": "text/html" },
             { "Access-Control-Allow-Origin": "*" }
           );
-          res.write(JSON.stringify(searchObj));
+          res.write(JSON.stringify({queryCount, searchObj})); // not sure
           res.end();
         } else {
           res.writeHead(404, { "Content-Type": "text/html" });
