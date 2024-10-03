@@ -23,7 +23,18 @@ function genDefinition() {
 }
 
 function search() {
-    
+    const xhttp = new XMLHttpRequest();
+    const word = document.getElementById('search').value;
+    xhttp.open('POST', "https://api.grace-su.com/api/definitions/search", true);
+    xhttp.setRequestHeader('Content-Type', 'application/json');
+    xhttp.send(JSON.stringify({ word }));
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            document.getElementById('result').innerHTML = this.responseText;
+        } else {
+            document.getElementById('result').innerHTML = this.responseText;
+        }
+    }
 }
 
 function store() {
@@ -40,4 +51,6 @@ function store() {
             document.getElementById('result').innerHTML = this.responseText;
         }
     };
+    document.getElementById('search').value = '';
+    document.getElementById('definition').value = '';
 }
