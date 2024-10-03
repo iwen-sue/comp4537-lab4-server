@@ -75,9 +75,9 @@ http
           res.end();
           return;
         }
+        recCount++;
         const storedObj = { recCount, word, definition };
         dictionary.push(storedObj);
-        recCount++;
         res.writeHead(
           200,
           { "Content-Type": "text/html" },
