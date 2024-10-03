@@ -43,7 +43,7 @@ http
         res.write(
           JSON.stringify({
             word,
-            warning: "Word Not Found from Record",
+            warning: `Word: ${word} Not Found from Record`,
           })
         );
         res.end();
@@ -86,7 +86,7 @@ http
         res.write(
           JSON.stringify({
             storedObj,
-            message: `${word} successfully added to dictionary`,
+            message: `Word: ${word} successfully added to dictionary`,
           })
         );
         res.end();
@@ -161,7 +161,7 @@ http
             JSON.stringify({
               queryCount,
               word,
-              warning: "Word Not Found from Record",
+              warning: `Word: ${word} Not Found from Record`,
             })
           );
           res.end();
