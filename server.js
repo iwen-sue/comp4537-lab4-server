@@ -51,7 +51,6 @@ http
 
         // .../api/definitions/add => to add word: definition to dictionary record
     } else if (method === POST && pathname === endPointRoot + "/add") {
-      recCount++;
       let body = "";
       req.on("data", (chunk) => {
         if (chunk) {
@@ -78,6 +77,7 @@ http
         }
         const storedObj = { recCount, word, definition };
         dictionary.push(storedObj);
+        recCount++;
         res.writeHead(
           200,
           { "Content-Type": "text/html" },
@@ -131,6 +131,7 @@ http
       });
       // Search word from records
     } else if (method === POST && pathname === endPointRoot + "/search") {
+      queryCount++;
       let body = "";
       req.on("data", (chunk) => {
         if (chunk) {
@@ -152,7 +153,7 @@ http
         } else {
           res.writeHead(404, { "Content-Type": "text/html" });
           res.write(
-            JSON.stringify({ word, warning: "Word Not Found from Record" })
+            JSON.stringify({ queryCount, word, warning: "Word Not Found from Record" })
           );
           res.end();
         }
