@@ -25,9 +25,9 @@ function genDefinition() {
 function search() {
     document.getElementById('definition').value = '';
     const word = document.getElementById('search').value;
-    xhttp.open('POST', "https://api.grace-su.com/api/definitions/search", true);
+    xhttp.open('GET', `https://api.grace-su.com/api/definitions?word=${word}`, true);
     xhttp.setRequestHeader('Content-Type', 'application/json');
-    xhttp.send(JSON.stringify({ word }));
+    xhttp.send();
     xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
             document.getElementById('result').innerHTML = this.responseText;

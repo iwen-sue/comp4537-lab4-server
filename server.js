@@ -1,6 +1,7 @@
 const http = require("http");
 const url = require("url");
 const connection = require("./db").connection;
+const message = require("./lang/en/en").message;
 
 const dictAPIRoot = "https://api.dictionaryapi.dev/api/v2/entries/en/";
 const GET = "GET";
@@ -60,7 +61,7 @@ http
         const data = JSON.stringify({
           queryCount,
           word,
-          warning: `Word: ${word} Not Found from Record`,
+          warning: message.wordNotFound(word),
         });
         serverResponse(res, 404, data);
       }
@@ -79,7 +80,7 @@ http
         if (dictionary.some((obj) => obj.word === word)) {
           const data = JSON.stringify({
             word,
-            warning: `Warning! ${word} already exists in record.`,
+            warning: message.wordExists(word),
           })
           serverResponse(res, 500, data);
           return;
@@ -89,7 +90,7 @@ http
         dictionary.push(storedObj);
         const data = JSON.stringify({
           storedObj,
-          message: `Word: ${word} successfully added to dictionary`,
+          message: message.wordAdded(word),
         });
         serverResponse(res, 200, data);
       });
@@ -129,8 +130,8 @@ http
       req.on("end", () => {
         let query = insertSql;
         connection.query(query, (error) => {
-          if (error) { serverResponse(res, 500, "Error inserting data into the database"); return}
-          serverResponse(res, 200, "Data inserted successfully");
+          if (error) { serverResponse(res, 500, message.errorInsertData); return}
+          serverResponse(res, 200, message.successInsertData);
         });
       });
     } else if (method === POST && pathname === dbRoot + "/insert") {
@@ -143,12 +144,12 @@ http
       req.on("end", () => {
         let { query } = JSON.parse(body);
         if (blockedQueries.some((blockedQuery) => query.toUpperCase().includes(blockedQuery))) {
-          serverResponse(res, 400, "Query not allowed");
+          serverResponse(res, 400, message.queryNotAllowed);
           return;
         }
         connection.query(query, (error) => {
-          if (error) {serverResponse(res, 500, "Error inserting data into the database"); return}
-          serverResponse(res, 200, "INSERT query success");
+          if (error) {serverResponse(res, 500, message.errorInsertData); return}
+          serverResponse(res, 200, message.successInsertData);
         });
       });
     } else if (method === GET && new RegExp(`^${dbRoot}/.*$`).test(pathname)) {
@@ -159,15 +160,15 @@ http
           .trim()
           .replace(/^["]|["]$/g, "");
         if (blockedQueries.some((blockedQuery) => decodedQuery.toUpperCase().includes(blockedQuery))) {
-          serverResponse(res, 400, "Query not allowed");
+          serverResponse(res, 400, message.queryNotAllowed);
           return;
         }
         connection.query(decodedQuery, (error, results) => {
-          if (error) {serverResponse(res, 500, "Error querying the database"); return}
+          if (error) {serverResponse(res, 500, message.errorQueryDatabase); return}
           serverResponse(res, 200, JSON.stringify(results));
         });
       } else {
-        serverResponse(res, 400, "Bad request");
+        serverResponse(res, 400, message.errorRequest);
       }
 
     } else {
