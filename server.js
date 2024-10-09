@@ -1,12 +1,23 @@
 const http = require("http");
 const url = require("url");
+const connection = require("./db").connection;
 const dictAPIRoot = "https://api.dictionaryapi.dev/api/v2/entries/en/";
 const GET = "GET";
 const POST = "POST";
-const endPointRoot = "/api/definitions";
+const dictRoot = "/api/definitions";
+const dbRoot = "/api/db";
 const dictionary = [];
 let queryCount = 0;
 let recCount = 0;
+
+let insertSql = `
+  INSERT INTO patients (name, dateOfBirth)
+  VALUES
+  ('Sara Brown', '1901-01-01'),
+  ('John Smith', '1941-01-01'),
+  ('Jack Ma', '1961-01-30'),
+  ('Elon Musk', '1999-01-01');
+;`;
 
 http
   .createServer((req, res) => {
@@ -18,6 +29,15 @@ http
     const { method, url: reqUrl } = req;
     const { query, pathname } = url.parse(reqUrl, true);
 
+    // Connect to the database
+    connection.connect((err) => {
+      if (err) {
+        console.error("Error connecting to the database:", err.stack);
+        serverResponse(res, 500, "Error connecting to the database");
+        return;
+      }
+    });
+
     // Handle preflight (OPTIONS) requests
     if (req.method === "OPTIONS") {
       res.writeHead(204); // No Content
@@ -25,8 +45,8 @@ http
       return;
     }
 
-    // .../api/definitions?word=*** => Get definition from dictionary record 
-    if (method === GET && pathname === endPointRoot && query.word) {
+    // .../api/definitions?word=*** => Get definition from dictionary record
+    if (method === GET && pathname === dictRoot && query.word) {
       queryCount++;
       const word = query.word.toLowerCase();
 
@@ -52,7 +72,7 @@ http
       }
 
       // .../api/definitions/add => to add word: definition to dictionary record
-    } else if (method === POST && pathname === endPointRoot + "/add") {
+    } else if (method === POST && pathname === dictRoot + "/add") {
       let body = "";
       req.on("data", (chunk) => {
         if (chunk) {
@@ -95,7 +115,7 @@ http
       });
 
       // .../api/definitions for display all words in record
-    } else if (method === GET && pathname === endPointRoot) {
+    } else if (method === GET && pathname === dictRoot) {
       res.writeHead(
         200,
         { "Content-Type": "text/html" },
@@ -105,7 +125,7 @@ http
       res.end();
 
       // Search Word from free dictionary API for dev testing purpose
-    } else if (method === POST && pathname === endPointRoot) {
+    } else if (method === POST && pathname === dictRoot) {
       let body = "";
       req.on("data", (chunk) => {
         if (chunk) {
@@ -136,13 +156,49 @@ http
             res.end();
           });
       });
-      // Page not found
+    } else if (method === POST && pathname === dbRoot + "/add") {
+      let body = "";
+      req.on("data", (chunk) => {
+        if (chunk) {
+          body += chunk.toString();
+        }
+      });
+      req.on("end", () => {
+        let query = insertSql;
+        
+        connection.query(query, (error) => {
+          if (error) {
+            console.error("Error inserting data into the database:", error);
+            serverResponse(res, 500, "Error inserting data into the database");
+            return;
+          }
+          serverResponse(res, 200, "Data inserted successfully");
+        });
+
+      });
+    } else if (method === POST && pathname === dbRoot + "/insert") {
+    } else if (method === GET && new RegExp(`^${dbRoot}/.*$`).test(pathname)) {
+      const pathParts = pathname.split("/");
+      const query = pathParts[pathParts.length - 1];
+      if (query) {
+        const decodedQuery = decodeURIComponent(query).trim().replace(/^["]|["]$/g, '');
+        connection.query(decodedQuery, (error, results) => {
+          if (error) serverResponse(res, 500, "Error querying the database");
+          serverResponse(res, 200, JSON.stringify(results));
+        });
+      } else {
+        serverResponse(res, 400, "Bad request");
+      }
     } else {
-      res.writeHead(404, { "Content-Type": "text/html" });
-      res.write("404 Not Found");
-      res.end();
+      serverResponse(res, 404, "Page not found");
     }
   })
   .listen(process.env.PORT || 3000, () => {
     console.log("Server is running on port 3000");
   });
+
+function serverResponse(res, status, message) {
+  res.writeHead(status, { "Content-Type": "text/html" });
+  res.write(message);
+  res.end();
+}

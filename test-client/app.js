@@ -55,3 +55,18 @@ function store() {
     document.getElementById('search').value = '';
     document.getElementById('definition').value = '';
 }
+
+function addData() {
+    console.log('addData');
+    const xhttp = new XMLHttpRequest();
+    xhttp.open('POST', "https://api.grace-su.com/api/db/add", true);
+    xhttp.setRequestHeader('Content-Type', 'application/json');
+    xhttp.send();
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            document.getElementById('dbResult').innerHTML = this.responseText;
+        } else {
+            document.getElementById('dbResult').innerHTML = this.responseText;
+        }
+    };
+}
