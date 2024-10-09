@@ -11,3 +11,12 @@ https://api.grace-su.com/api/definitions
 
 ### POST method to add word : definition object to dictionary records
 https://api.grace-su.com/api/definitions/add
+
+### POST method to add mock data (as specified in lab instruction)
+https://api.grace-su.com/api/db/add
+
+### POST method to perform INSERT query to database
+https://api.grace-su.com/api/db/insert
+
+### GET method to perform SELECT query retrieved from url
+https://api.grace-su.com/api/db/"Type your sql query here"
