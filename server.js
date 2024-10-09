@@ -1,6 +1,7 @@
 const http = require("http");
 const url = require("url");
 const connection = require("./db").connection;
+
 const dictAPIRoot = "https://api.dictionaryapi.dev/api/v2/entries/en/";
 const GET = "GET";
 const POST = "POST";
@@ -10,7 +11,7 @@ const dictionary = [];
 let queryCount = 0;
 let recCount = 0;
 
-let insertSql = `
+const insertSql = `
   INSERT INTO patients (name, dateOfBirth)
   VALUES
   ('Sara Brown', '1901-01-01'),
@@ -18,6 +19,8 @@ let insertSql = `
   ('Jack Ma', '1961-01-30'),
   ('Elon Musk', '1999-01-01');
 ;`;
+
+const blockedQueries = ['DELETE', 'UPDATE', 'DROP', 'ALTER'];
 
 http
   .createServer((req, res) => {
@@ -165,30 +168,48 @@ http
       });
       req.on("end", () => {
         let query = insertSql;
-        
         connection.query(query, (error) => {
-          if (error) {
-            console.error("Error inserting data into the database:", error);
-            serverResponse(res, 500, "Error inserting data into the database");
-            return;
-          }
+          if (error) { serverResponse(res, 500, "Error inserting data into the database"); return}
           serverResponse(res, 200, "Data inserted successfully");
         });
-
       });
     } else if (method === POST && pathname === dbRoot + "/insert") {
+      let body = "";
+      req.on("data", (chunk) => {
+        if (chunk) {
+          body += chunk.toString();
+        }
+      });
+      req.on("end", () => {
+        let { query } = JSON.parse(body);
+        if (blockedQueries.some((blockedQuery) => query.toUpperCase().includes(blockedQuery))) {
+          serverResponse(res, 400, "Query not allowed");
+          return;
+        }
+        connection.query(query, (error) => {
+          if (error) {serverResponse(res, 500, "Error inserting data into the database"); return}
+          serverResponse(res, 200, "INSERT query success");
+        });
+      });
     } else if (method === GET && new RegExp(`^${dbRoot}/.*$`).test(pathname)) {
       const pathParts = pathname.split("/");
       const query = pathParts[pathParts.length - 1];
       if (query) {
-        const decodedQuery = decodeURIComponent(query).trim().replace(/^["]|["]$/g, '');
+        const decodedQuery = decodeURIComponent(query)
+          .trim()
+          .replace(/^["]|["]$/g, "");
+        if (blockedQueries.some((blockedQuery) => decodedQuery.toUpperCase().includes(blockedQuery))) {
+          serverResponse(res, 400, "Query not allowed");
+          return;
+        }
         connection.query(decodedQuery, (error, results) => {
-          if (error) serverResponse(res, 500, "Error querying the database");
+          if (error) {serverResponse(res, 500, "Error querying the database"); return}
           serverResponse(res, 200, JSON.stringify(results));
         });
       } else {
         serverResponse(res, 400, "Bad request");
       }
+      
     } else {
       serverResponse(res, 404, "Page not found");
     }

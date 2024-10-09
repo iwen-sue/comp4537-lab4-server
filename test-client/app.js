@@ -1,8 +1,8 @@
 console.log('Test app!');
+const xhttp = new XMLHttpRequest();
 
 function genDefinition() {
     document.getElementById('definition').value = '';
-    const xhttp = new XMLHttpRequest();
     const str = document.getElementById('search').value;
     xhttp.open('POST', "https://api.grace-su.com/api/definitions", true);
     xhttp.setRequestHeader('Content-Type', 'application/json');
@@ -24,7 +24,6 @@ function genDefinition() {
 
 function search() {
     document.getElementById('definition').value = '';
-    const xhttp = new XMLHttpRequest();
     const word = document.getElementById('search').value;
     xhttp.open('POST', "https://api.grace-su.com/api/definitions/search", true);
     xhttp.setRequestHeader('Content-Type', 'application/json');
@@ -39,7 +38,6 @@ function search() {
 }
 
 function store() {
-    const xhttp = new XMLHttpRequest();
     const word = document.getElementById('search').value;
     const definition = document.getElementById('definition').value;
     xhttp.open('POST', "https://api.grace-su.com/api/definitions/add", true);
@@ -58,7 +56,6 @@ function store() {
 
 function addData() {
     console.log('addData');
-    const xhttp = new XMLHttpRequest();
     xhttp.open('POST', "https://api.grace-su.com/api/db/add", true);
     xhttp.setRequestHeader('Content-Type', 'application/json');
     xhttp.send();
@@ -69,4 +66,35 @@ function addData() {
             document.getElementById('dbResult').innerHTML = this.responseText;
         }
     };
+}
+
+function submitQuery() {
+    const query = document.getElementById('query').value.trim();
+
+    // check if the query has INSERT or SELECT
+    if (query.toUpperCase().includes('INSERT')) {
+        xhttp.open('POST', "https://api.grace-su.com/api/db/insert", true);
+        xhttp.setRequestHeader('Content-Type', 'application/json');
+        xhttp.send(JSON.stringify({ query }));
+        xhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                document.getElementById('dbResult').innerHTML = this.responseText;
+            } else {
+                document.getElementById('dbResult').innerHTML = this.responseText;
+            }
+        };
+    } else if (query.toUpperCase().includes('SELECT')) {
+        xhttp.open('GET', `https://api.grace-su.com/api/db/${query}`, true);
+        xhttp.send();
+        xhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                document.getElementById('dbResult').innerHTML = this.responseText;
+            } else {
+                document.getElementById('dbResult').innerHTML = this.responseText;
+            }
+        }
+    } else {
+        document.getElementById('dbResult').innerHTML = 'Invalid Query';
+        return;
+    }
 }

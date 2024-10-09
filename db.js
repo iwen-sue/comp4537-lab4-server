@@ -14,19 +14,3 @@ const connection = mysql.createConnection({
 });
 
 exports.connection = connection;
-
-// connection.connect((err) => {
-//   if (err) {
-//     console.error('Error connecting to the database:', err.stack);
-//     return;
-//   }
-//   console.log('Connected to the database as ID', connection.threadId);
-// });
-
-
-// connection.query('SELECT NOW()', (error, results, fields) => {
-//   if (error) throw error;
-//   console.log('The current time is: ', results[0]);
-// });
-
-// Close the connection
