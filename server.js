@@ -52,26 +52,17 @@ http
     if (method === GET && pathname === dictRoot && query.word) {
       queryCount++;
       const word = query.word.toLowerCase();
-
       const searchObj = dictionary.find((obj) => obj.word === word);
+
       if (searchObj) {
-        res.writeHead(
-          200,
-          { "Content-Type": "text/html" },
-          { "Access-Control-Allow-Origin": "*" }
-        );
-        res.write(JSON.stringify(searchObj));
-        res.end();
+        serverResponse(res, 200, JSON.stringify(searchObj));
       } else {
-        res.writeHead(404, { "Content-Type": "text/html" });
-        res.write(
-          JSON.stringify({
-            queryCount,
-            word,
-            warning: `Word: ${word} Not Found from Record`,
-          })
-        );
-        res.end();
+        const data = JSON.stringify({
+          queryCount,
+          word,
+          warning: `Word: ${word} Not Found from Record`,
+        });
+        serverResponse(res, 404, data);
       }
 
       // .../api/definitions/add => to add word: definition to dictionary record
@@ -86,47 +77,26 @@ http
         let { word, definition } = JSON.parse(body);
         word = word.toLowerCase();
         if (dictionary.some((obj) => obj.word === word)) {
-          res.writeHead(
-            500,
-            { "Content-Type": "text/html" },
-            { "Access-Control-Allow-Origin": "*" }
-          );
-          res.write(
-            JSON.stringify({
-              word,
-              warning: `Warning! ${word} already exists in record.`,
-            })
-          );
-          res.end();
+          const data = JSON.stringify({
+            word,
+            warning: `Warning! ${word} already exists in record.`,
+          })
+          serverResponse(res, 500, data);
           return;
         }
         recCount++;
         const storedObj = { recCount, word, definition };
         dictionary.push(storedObj);
-        res.writeHead(
-          200,
-          { "Content-Type": "text/html" },
-          { "Access-Control-Allow-Origin": "*" }
-        );
-        res.write(
-          JSON.stringify({
-            storedObj,
-            message: `Word: ${word} successfully added to dictionary`,
-          })
-        );
-        res.end();
+        const data = JSON.stringify({
+          storedObj,
+          message: `Word: ${word} successfully added to dictionary`,
+        });
+        serverResponse(res, 200, data);
       });
 
       // .../api/definitions for display all words in record
     } else if (method === GET && pathname === dictRoot) {
-      res.writeHead(
-        200,
-        { "Content-Type": "text/html" },
-        { "Access-Control-Allow-Origin": "*" }
-      );
-      res.write(JSON.stringify(dictionary));
-      res.end();
-
+      serverResponse(res, 200, JSON.stringify(dictionary));
       // Search Word from free dictionary API for dev testing purpose
     } else if (method === POST && pathname === dictRoot) {
       let body = "";
@@ -143,20 +113,10 @@ http
           .then((data) => {
             const definition = data[0].meanings[0].definitions[0].definition;
             const searchObj = { word, definition };
-            res.writeHead(
-              200,
-              { "Content-Type": "text/html" },
-              { "Access-Control-Allow-Origin": "*" }
-            );
-            res.write(JSON.stringify(searchObj));
-            res.end();
+            serverResponse(res, 200, JSON.stringify(searchObj));
           })
           .catch((err) => {
-            res.writeHead(404, { "Content-Type": "text/html" });
-            res.write(
-              JSON.stringify({ word, warning: "Word Definition Not Found" })
-            );
-            res.end();
+            serverResponse(res, 404, JSON.stringify({ word, warning: "Word Definition Not Found" }));
           });
       });
     } else if (method === POST && pathname === dbRoot + "/add") {
@@ -209,7 +169,7 @@ http
       } else {
         serverResponse(res, 400, "Bad request");
       }
-      
+
     } else {
       serverResponse(res, 404, "Page not found");
     }
