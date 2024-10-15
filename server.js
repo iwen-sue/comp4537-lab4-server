@@ -38,6 +38,7 @@ http
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "*");
     res.setHeader("Access-Control-Allow-Headers", "*");
+    res.setHeader('Access-Control-Allow-Origin', 'https://luludongcomp4537lab5.netlify.app');
 
     const { method, url: reqUrl } = req;
     const { query, pathname } = url.parse(reqUrl, true);
@@ -152,15 +153,11 @@ http
               }
             });
             connection.query(query, (error) => {
-              if (error) {
-                console.error(error.message);
-                serverResponse(res, 500, message.errorInsertData);
-                return;
+              if (error) {serverResponse(res, 500, message.errorInsertData);return;
               }
               serverResponse(res, 200, message.successInsertData);
             });
           } else if (error) {
-            console.error(error.message);
             serverResponse(res, 500, message.errorInsertData);
             return;
           }
