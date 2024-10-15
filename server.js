@@ -143,17 +143,28 @@ http
         connection.query(query, (error) => {
           if (error) {
             if (error.message.includes(`${tableName}' doesn't exist`)) {
+              // Create the table if it doesn't exist
               connection.query(createTableSql, (error) => {
-                if (error) {serverResponse(res, 500, message.errorInsertData); return}
+                if (error) {
+                  return serverResponse(res, 500, message.errorInsertData); // Send response and stop further execution
+                }
+                
+                // Retry the original query after the table is created
+                connection.query(query, (error) => {
+                  if (error) {
+                    return serverResponse(res, 500, message.errorInsertData); // Send response and stop further execution
+                  }
+                  return serverResponse(res, 200, message.successInsertData); // Send success response
+                });
               });
-              connection.query(query, (error) => {
-                if (error) {serverResponse(res, 500, message.errorInsertData); return}
-                serverResponse(res, 200, message.successInsertData);
-              })
+            } else {
+              // Handle other types of errors
+              return serverResponse(res, 500, message.errorInsertData); // Send response and stop further execution
             }
-            serverResponse(res, 500, message.errorInsertData); return
+          } else {
+            // If no errors, send success response
+            return serverResponse(res, 200, message.successInsertData);
           }
-          serverResponse(res, 200, message.successInsertData);
         });
       });
     } else if (method === POST && pathname === dbRoot + "/insert") {
