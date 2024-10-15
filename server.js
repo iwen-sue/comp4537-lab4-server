@@ -1,3 +1,4 @@
+const { table } = require("console");
 const http = require("http");
 const url = require("url");
 const connection = require("./db").connection;
@@ -12,14 +13,24 @@ const dictionary = [];
 let queryCount = 0;
 let recCount = 0;
 
+const tableName = "patients";
+
 const insertSql = `
-  INSERT INTO patients (name, dateOfBirth)
+  INSERT INTO ${tableName} (name, dateOfBirth)
   VALUES
   ('Sara Brown', '1901-01-01'),
   ('John Smith', '1941-01-01'),
   ('Jack Ma', '1961-01-30'),
   ('Elon Musk', '1999-01-01');
 ;`;
+
+const createTableSql = `
+  CREATE TABLE ${tableName} (
+    patientid INT(11) PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL,
+    dateOfBirth DATETIME
+);
+`
 
 const blockedQueries = ['DELETE', 'UPDATE', 'DROP', 'ALTER'];
 
@@ -130,7 +141,18 @@ http
       req.on("end", () => {
         let query = insertSql;
         connection.query(query, (error) => {
-          if (error) { serverResponse(res, 500, message.errorInsertData); return}
+          if (error) {
+            if (error.message.includes(`${tableName}' doesn't exist`)) {
+              connection.query(createTableSql, (error) => {
+                if (error) {serverResponse(res, 500, message.errorInsertData); return}
+              });
+              connection.query(query, (error) => {
+                if (error) {serverResponse(res, 500, message.errorInsertData); return}
+                serverResponse(res, 200, message.successInsertData);
+              })
+            }
+            serverResponse(res, 500, message.errorInsertData); return
+          }
           serverResponse(res, 200, message.successInsertData);
         });
       });
