@@ -146,15 +146,15 @@ http
               // Create the table if it doesn't exist
               connection.query(createTableSql, (error) => {
                 if (error) {
-                  return serverResponse(res, 500, message.errorInsertData); // Send response and stop further execution
+                  return serverResponse(res, 500, message.errorInsertData);
                 }
                 
                 // Retry the original query after the table is created
                 connection.query(query, (error) => {
                   if (error) {
-                    return serverResponse(res, 500, message.errorInsertData); // Send response and stop further execution
+                    return serverResponse(res, 500, message.errorInsertData);
                   }
-                  return serverResponse(res, 200, message.successInsertData); // Send success response
+                  return serverResponse(res, 200, message.successInsertData);
                 });
               });
             } else {
@@ -162,7 +162,6 @@ http
               return serverResponse(res, 500, message.errorInsertData); // Send response and stop further execution
             }
           } else {
-            // If no errors, send success response
             return serverResponse(res, 200, message.successInsertData);
           }
         });
