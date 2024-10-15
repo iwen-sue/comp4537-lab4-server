@@ -142,6 +142,7 @@ http
         let query = insertSql;
         connection.query(query, (error) => {
           if (error) {
+            console.log(error);
             if (error.message.includes(`${tableName}' doesn't exist`)) {
               // Create the table if it doesn't exist
               connection.query(createTableSql, (error) => {
@@ -180,8 +181,30 @@ http
           return;
         }
         connection.query(query, (error) => {
-          if (error) {serverResponse(res, 500, message.errorInsertData); return}
-          serverResponse(res, 200, message.successInsertData);
+          if (error) {
+            console.log(error);
+            if (error.message.includes(`${tableName}' doesn't exist`)) {
+              // Create the table if it doesn't exist
+              connection.query(createTableSql, (error) => {
+                if (error) {
+                  return serverResponse(res, 500, message.errorInsertData);
+                }
+                
+                // Retry the original query after the table is created
+                connection.query(query, (error) => {
+                  if (error) {
+                    return serverResponse(res, 500, message.errorInsertData);
+                  }
+                  return serverResponse(res, 200, message.successInsertData);
+                });
+              });
+            } else {
+              // Handle other types of errors
+              return serverResponse(res, 500, message.errorInsertData); // Send response and stop further execution
+            }
+          } else {
+            return serverResponse(res, 200, message.successInsertData);
+          }
         });
       });
     } else if (method === GET && new RegExp(`^${dbRoot}/.*$`).test(pathname)) {
