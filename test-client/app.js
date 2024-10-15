@@ -56,7 +56,8 @@ function store() {
 
 function addData() {
     console.log('addData');
-    xhttp.open('POST', "https://api.grace-su.com/api/db/add", true);
+    // xhttp.open('POST', "https://api.grace-su.com/api/db/add", true);
+    xhttp.open('POST', "http://localhost:3000/api/db/add", true);
     xhttp.setRequestHeader('Content-Type', 'application/json');
     xhttp.send();
     xhttp.onreadystatechange = function() {
