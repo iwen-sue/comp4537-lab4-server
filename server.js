@@ -21,16 +21,7 @@ const insertSql = `
   ('Elon Musk', '1999-01-01');
 ;`;
 
-const tableName= 'patients';
-
-const createTable = `
-  CREATE TABLE ${tableName} (
-    patientid INT(11) PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(100) NOT NULL,
-    dateOfBirth DATETIME
-);`;
-
-const blockedQueries = ["DELETE", "UPDATE", "DROP", "ALTER"];
+const blockedQueries = ['DELETE', 'UPDATE', 'DROP', 'ALTER'];
 
 http
   .createServer((req, res) => {
@@ -90,7 +81,7 @@ http
           const data = JSON.stringify({
             word,
             warning: message.wordExists(word),
-          });
+          })
           serverResponse(res, 500, data);
           return;
         }
@@ -126,11 +117,7 @@ http
             serverResponse(res, 200, JSON.stringify(searchObj));
           })
           .catch((err) => {
-            serverResponse(
-              res,
-              404,
-              JSON.stringify({ word, warning: "Word Definition Not Found" })
-            );
+            serverResponse(res, 404, JSON.stringify({ word, warning: "Word Definition Not Found" }));
           });
       });
     } else if (method === POST && pathname === dbRoot + "/add") {
@@ -143,23 +130,7 @@ http
       req.on("end", () => {
         let query = insertSql;
         connection.query(query, (error) => {
-          if (error.message === `Table 'foxyehixmxzz2jem.${tableName}' doesn't exist`){
-            connection.query(createTable, (error) => {
-              if (error) {
-                console.error(error.message);
-                serverResponse(res, 500, message.errorInsertData);
-                return;
-              }
-            });
-            connection.query(query, (error) => {
-              if (error) {serverResponse(res, 500, message.errorInsertData);return;
-              }
-              serverResponse(res, 200, message.successInsertData);
-            });
-          } else if (error) {
-            serverResponse(res, 500, message.errorInsertData);
-            return;
-          }
+          if (error) { serverResponse(res, 500, message.errorInsertData); return}
           serverResponse(res, 200, message.successInsertData);
         });
       });
@@ -172,19 +143,12 @@ http
       });
       req.on("end", () => {
         let { query } = JSON.parse(body);
-        if (
-          blockedQueries.some((blockedQuery) =>
-            query.toUpperCase().includes(blockedQuery)
-          )
-        ) {
+        if (blockedQueries.some((blockedQuery) => query.toUpperCase().includes(blockedQuery))) {
           serverResponse(res, 400, message.queryNotAllowed);
           return;
         }
         connection.query(query, (error) => {
-          if (error) {
-            serverResponse(res, 500, message.errorInsertData);
-            return;
-          }
+          if (error) {serverResponse(res, 500, message.errorInsertData); return}
           serverResponse(res, 200, message.successInsertData);
         });
       });
@@ -195,24 +159,18 @@ http
         const decodedQuery = decodeURIComponent(query)
           .trim()
           .replace(/^["]|["]$/g, "");
-        if (
-          blockedQueries.some((blockedQuery) =>
-            decodedQuery.toUpperCase().includes(blockedQuery)
-          )
-        ) {
+        if (blockedQueries.some((blockedQuery) => decodedQuery.toUpperCase().includes(blockedQuery))) {
           serverResponse(res, 400, message.queryNotAllowed);
           return;
         }
         connection.query(decodedQuery, (error, results) => {
-          if (error) {
-            serverResponse(res, 500, message.errorQueryDatabase);
-            return;
-          }
+          if (error) {serverResponse(res, 500, message.errorQueryDatabase); return}
           serverResponse(res, 200, JSON.stringify(results));
         });
       } else {
         serverResponse(res, 400, message.errorRequest);
       }
+
     } else {
       serverResponse(res, 404, "Page not found");
     }
